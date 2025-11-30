@@ -33,5 +33,5 @@ RUN chmod +x /app/start.sh
 # 暴露端口（Railway会通过PORT环境变量动态指定）
 EXPOSE 8000
 
-# 使用启动脚本确保环境变量正确传递
-CMD ["/app/start.sh"]
+# 直接启动uvicorn，host必须是0.0.0.0才能被Railway访问
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
