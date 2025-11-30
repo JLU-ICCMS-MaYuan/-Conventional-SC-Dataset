@@ -1,4 +1,4 @@
-// 元素周期表数据（包含位置信息）
+// 完整的118元素周期表数据（参考ptable.com布局）
 const ELEMENTS_DATA = [
     // 第1周期
     { symbol: 'H', number: 1, name: '氢', row: 1, col: 1, category: 'nonmetal' },
@@ -44,7 +44,7 @@ const ELEMENTS_DATA = [
     { symbol: 'Br', number: 35, name: '溴', row: 4, col: 17, category: 'halogen' },
     { symbol: 'Kr', number: 36, name: '氪', row: 4, col: 18, category: 'noble-gas' },
 
-    // 第5周期 - 省略部分，仅展示关键元素
+    // 第5周期
     { symbol: 'Rb', number: 37, name: '铷', row: 5, col: 1, category: 'alkali-metal' },
     { symbol: 'Sr', number: 38, name: '锶', row: 5, col: 2, category: 'alkaline-earth' },
     { symbol: 'Y', number: 39, name: '钇', row: 5, col: 3, category: 'transition-metal' },
@@ -64,7 +64,7 @@ const ELEMENTS_DATA = [
     { symbol: 'I', number: 53, name: '碘', row: 5, col: 17, category: 'halogen' },
     { symbol: 'Xe', number: 54, name: '氙', row: 5, col: 18, category: 'noble-gas' },
 
-    // 第6周期 - 主要元素
+    // 第6周期
     { symbol: 'Cs', number: 55, name: '铯', row: 6, col: 1, category: 'alkali-metal' },
     { symbol: 'Ba', number: 56, name: '钡', row: 6, col: 2, category: 'alkaline-earth' },
     { symbol: 'La', number: 57, name: '镧', row: 6, col: 3, category: 'lanthanide' },
@@ -84,12 +84,27 @@ const ELEMENTS_DATA = [
     { symbol: 'At', number: 85, name: '砹', row: 6, col: 17, category: 'halogen' },
     { symbol: 'Rn', number: 86, name: '氡', row: 6, col: 18, category: 'noble-gas' },
 
-    // 第7周期 - 简化
+    // 第7周期
     { symbol: 'Fr', number: 87, name: '钫', row: 7, col: 1, category: 'alkali-metal' },
     { symbol: 'Ra', number: 88, name: '镭', row: 7, col: 2, category: 'alkaline-earth' },
     { symbol: 'Ac', number: 89, name: '锕', row: 7, col: 3, category: 'actinide' },
+    { symbol: 'Rf', number: 104, name: '鈩', row: 7, col: 4, category: 'transition-metal' },
+    { symbol: 'Db', number: 105, name: '𨧀', row: 7, col: 5, category: 'transition-metal' },
+    { symbol: 'Sg', number: 106, name: '𨭎', row: 7, col: 6, category: 'transition-metal' },
+    { symbol: 'Bh', number: 107, name: '𨨏', row: 7, col: 7, category: 'transition-metal' },
+    { symbol: 'Hs', number: 108, name: '𨭆', row: 7, col: 8, category: 'transition-metal' },
+    { symbol: 'Mt', number: 109, name: '鿏', row: 7, col: 9, category: 'transition-metal' },
+    { symbol: 'Ds', number: 110, name: '𫟼', row: 7, col: 10, category: 'transition-metal' },
+    { symbol: 'Rg', number: 111, name: '𬬻', row: 7, col: 11, category: 'transition-metal' },
+    { symbol: 'Cn', number: 112, name: '鿔', row: 7, col: 12, category: 'transition-metal' },
+    { symbol: 'Nh', number: 113, name: '鿭', row: 7, col: 13, category: 'post-transition' },
+    { symbol: 'Fl', number: 114, name: '𫓧', row: 7, col: 14, category: 'post-transition' },
+    { symbol: 'Mc', number: 115, name: '镆', row: 7, col: 15, category: 'post-transition' },
+    { symbol: 'Lv', number: 116, name: '𫟷', row: 7, col: 16, category: 'post-transition' },
+    { symbol: 'Ts', number: 117, name: '石田', row: 7, col: 17, category: 'halogen' },
+    { symbol: 'Og', number: 118, name: '气奥', row: 7, col: 18, category: 'noble-gas' },
 
-    // 镧系元素 (简化显示)
+    // 镧系元素（La系，原子序数58-71）- 放在第9行
     { symbol: 'Ce', number: 58, name: '铈', row: 9, col: 4, category: 'lanthanide' },
     { symbol: 'Pr', number: 59, name: '镨', row: 9, col: 5, category: 'lanthanide' },
     { symbol: 'Nd', number: 60, name: '钕', row: 9, col: 6, category: 'lanthanide' },
@@ -97,6 +112,29 @@ const ELEMENTS_DATA = [
     { symbol: 'Sm', number: 62, name: '钐', row: 9, col: 8, category: 'lanthanide' },
     { symbol: 'Eu', number: 63, name: '铕', row: 9, col: 9, category: 'lanthanide' },
     { symbol: 'Gd', number: 64, name: '钆', row: 9, col: 10, category: 'lanthanide' },
+    { symbol: 'Tb', number: 65, name: '铽', row: 9, col: 11, category: 'lanthanide' },
+    { symbol: 'Dy', number: 66, name: '镝', row: 9, col: 12, category: 'lanthanide' },
+    { symbol: 'Ho', number: 67, name: '钬', row: 9, col: 13, category: 'lanthanide' },
+    { symbol: 'Er', number: 68, name: '铒', row: 9, col: 14, category: 'lanthanide' },
+    { symbol: 'Tm', number: 69, name: '铥', row: 9, col: 15, category: 'lanthanide' },
+    { symbol: 'Yb', number: 70, name: '镱', row: 9, col: 16, category: 'lanthanide' },
+    { symbol: 'Lu', number: 71, name: '镥', row: 9, col: 17, category: 'lanthanide' },
+
+    // 锕系元素（Ac系，原子序数90-103）- 放在第10行
+    { symbol: 'Th', number: 90, name: '钍', row: 10, col: 4, category: 'actinide' },
+    { symbol: 'Pa', number: 91, name: '镤', row: 10, col: 5, category: 'actinide' },
+    { symbol: 'U', number: 92, name: '铀', row: 10, col: 6, category: 'actinide' },
+    { symbol: 'Np', number: 93, name: '镎', row: 10, col: 7, category: 'actinide' },
+    { symbol: 'Pu', number: 94, name: '钚', row: 10, col: 8, category: 'actinide' },
+    { symbol: 'Am', number: 95, name: '镅', row: 10, col: 9, category: 'actinide' },
+    { symbol: 'Cm', number: 96, name: '锔', row: 10, col: 10, category: 'actinide' },
+    { symbol: 'Bk', number: 97, name: '锫', row: 10, col: 11, category: 'actinide' },
+    { symbol: 'Cf', number: 98, name: '锎', row: 10, col: 12, category: 'actinide' },
+    { symbol: 'Es', number: 99, name: '锿', row: 10, col: 13, category: 'actinide' },
+    { symbol: 'Fm', number: 100, name: '镄', row: 10, col: 14, category: 'actinide' },
+    { symbol: 'Md', number: 101, name: '钔', row: 10, col: 15, category: 'actinide' },
+    { symbol: 'No', number: 102, name: '锘', row: 10, col: 16, category: 'actinide' },
+    { symbol: 'Lr', number: 103, name: '铹', row: 10, col: 17, category: 'actinide' },
 ];
 
 // 全局变量
@@ -115,7 +153,7 @@ function renderPeriodicTable() {
     const container = document.getElementById('periodic-table');
     container.innerHTML = '';
 
-    // 计算需要的网格尺寸
+    // 计算需要的网格尺寸（10行以容纳镧系和锕系）
     const maxRow = Math.max(...ELEMENTS_DATA.map(e => e.row));
     const maxCol = 18;
 
@@ -148,99 +186,78 @@ function createElementDiv(element) {
     div.dataset.name = element.name;
 
     div.innerHTML = `
-        <div class="atomic-number">${element.number}</div>
-        <div class="symbol">${element.symbol}</div>
-        <div class="name">${element.name}</div>
+        <div class="element-number">${element.number}</div>
+        <div class="element-symbol">${element.symbol}</div>
+        <div class="element-name">${element.name}</div>
     `;
 
-    div.addEventListener('click', () => toggleElement(element.symbol, div));
+    // 点击事件
+    div.addEventListener('click', function() {
+        toggleElementSelection(element.symbol);
+    });
 
     return div;
 }
 
-// 切换元素选中状态
-function toggleElement(symbol, element) {
+// 切换元素选择状态
+function toggleElementSelection(symbol) {
     if (selectedElements.has(symbol)) {
         selectedElements.delete(symbol);
-        element.classList.remove('selected');
+        document.querySelector(`[data-symbol="${symbol}"]`).classList.remove('selected');
     } else {
         selectedElements.add(symbol);
-        element.classList.add('selected');
+        document.querySelector(`[data-symbol="${symbol}"]`).classList.add('selected');
     }
 
     updateSelectedDisplay();
 }
 
-// 更新选中元素显示
+// 更新已选元素显示
 function updateSelectedDisplay() {
-    const displayEl = document.getElementById('selected-elements');
-    const enterBtn = document.getElementById('enter-compound-btn');
+    const display = document.getElementById('selected-elements');
+    const btn = document.getElementById('enter-compound-btn');
 
     if (selectedElements.size === 0) {
-        displayEl.textContent = '未选择';
-        displayEl.className = 'badge bg-secondary';
-        enterBtn.disabled = true;
+        display.textContent = '未选择';
+        display.className = 'badge bg-secondary';
+        btn.disabled = true;
     } else {
-        const symbols = Array.from(selectedElements).sort().join(', ');
-        displayEl.textContent = symbols;
-        displayEl.className = 'badge bg-primary';
-        enterBtn.disabled = false;
+        const sortedElements = Array.from(selectedElements).sort();
+        display.textContent = sortedElements.join(', ');
+        display.className = 'badge bg-primary';
+        btn.disabled = false;
     }
 }
 
 // 设置事件监听器
 function setupEventListeners() {
     // 进入化合物页面按钮
-    document.getElementById('enter-compound-btn').addEventListener('click', checkAndNavigate);
+    document.getElementById('enter-compound-btn').addEventListener('click', function() {
+        if (selectedElements.size > 0) {
+            enterCompoundPage();
+        }
+    });
 
     // 清除选择按钮
-    document.getElementById('clear-selection-btn').addEventListener('click', clearSelection);
+    document.getElementById('clear-selection-btn').addEventListener('click', function() {
+        clearSelection();
+    });
 
-    // Enter键快捷跳转
+    // Enter键快捷键
     document.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && selectedElements.size > 0) {
-            checkAndNavigate();
+            enterCompoundPage();
         }
     });
 }
 
-// 检查并导航到化合物页面
-async function checkAndNavigate() {
-    if (selectedElements.size === 0) return;
+// 进入化合物页面
+async function enterCompoundPage() {
+    const elementSymbols = Array.from(selectedElements).sort().join('-');
 
-    const symbols = Array.from(selectedElements);
-
-    // 显示加载提示
-    loadingModal.show();
-
-    try {
-        // 调用API检查元素组合（仅验证元素是否有效）
-        const response = await fetch('/api/compounds/check', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                element_symbols: symbols
-            })
-        });
-
-        const data = await response.json();
-
-        loadingModal.hide();
-
-        if (response.ok) {
-            // 无论是否有文献，都直接跳转到化合物页面
-            // 让用户可以成为第一个贡献者！
-            window.location.href = `/compound/${data.element_symbols}`;
-        } else {
-            alert('错误: ' + (data.detail || '未知错误'));
-        }
-    } catch (error) {
-        loadingModal.hide();
-        console.error('请求失败:', error);
-        alert('网络错误，请检查服务器是否运行');
-    }
+    // 无论是否有文献，都直接跳转到化合物页面
+    // 让用户可以成为第一个贡献者！
+    window.location.href = `/compound/${elementSymbols}`;
 }
 
 // 清除选择
