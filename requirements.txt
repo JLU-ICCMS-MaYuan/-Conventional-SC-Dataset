@@ -13,11 +13,13 @@ httpx==0.26.0
 # 数据验证
 pydantic==2.5.3
 pydantic-settings==2.1.0
+email-validator==2.3.0  # 邮箱验证（pydantic EmailStr 需要）
 
 # 图片处理
 Pillow==10.2.0
 
 # 认证与安全
+bcrypt==4.0.1  # bcrypt 加密（必须用 4.0.1 版本，5.x 与 passlib 不兼容）
 passlib[bcrypt]==1.7.4  # 密码哈希
 python-jose[cryptography]==3.3.0  # JWT token
 
