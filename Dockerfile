@@ -17,14 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制项目文件
 COPY . .
 
-# 创建数据目录
+# 创建数据目录（Volume会挂载到这里）
 RUN mkdir -p /app/data
 
-# 初始化数据库
-RUN python -m backend.init_db
+# 注意：不在构建时初始化数据库，而是在应用启动时初始化（见backend/main.py的startup事件）
+# 这样可以确保数据库创建在Volume挂载后的持久化存储中
 
-# 暴露端口
-EXPOSE 8000
+# 暴露端口（Railway会通过PORT环境变量动态指定）
+EXPOSE ${PORT:-8000}
 
-# 启动命令
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 启动命令：使用shell形式以便读取PORT环境变量
+CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
