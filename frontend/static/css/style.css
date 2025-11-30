@@ -1,0 +1,270 @@
+/* 全局样式 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    padding-bottom: 50px;
+}
+
+/* 元素周期表容器 */
+.periodic-table-container {
+    overflow-x: auto;
+    padding: 20px 0;
+}
+
+#periodic-table {
+    display: grid;
+    grid-template-columns: repeat(18, 60px);
+    grid-gap: 3px;
+    max-width: fit-content;
+    margin: 0 auto;
+}
+
+/* 元素方块 */
+.element {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+    user-select: none;
+}
+
+.element:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* 原子序数 */
+.element .atomic-number {
+    font-size: 8px;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+/* 元素符号 */
+.element .symbol {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+/* 元素名称 */
+.element .name {
+    font-size: 9px;
+    color: #666;
+}
+
+/* 选中状态 */
+.element.selected {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+    transform: scale(1.05);
+}
+
+.element.selected .atomic-number,
+.element.selected .name {
+    color: #e0e0e0;
+}
+
+/* 元素类别颜色 */
+.element.alkali-metal {
+    background-color: #ffb3ba;
+}
+
+.element.alkaline-earth {
+    background-color: #ffd4a3;
+}
+
+.element.transition-metal {
+    background-color: #ffdfba;
+}
+
+.element.post-transition {
+    background-color: #ffffba;
+}
+
+.element.metalloid {
+    background-color: #baffc9;
+}
+
+.element.nonmetal {
+    background-color: #bae1ff;
+}
+
+.element.halogen {
+    background-color: #d4baff;
+}
+
+.element.noble-gas {
+    background-color: #f0baff;
+}
+
+.element.lanthanide {
+    background-color: #ffc9ff;
+}
+
+.element.actinide {
+    background-color: #ffb3e0;
+}
+
+/* 选中时保持高亮色 */
+.element.selected {
+    background-color: #0d6efd !important;
+}
+
+/* 空白格子 */
+.element.empty {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* 元素组合页面样式 */
+.compound-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.paper-card {
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+}
+
+.paper-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.paper-images {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.paper-image-thumbnail {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.paper-image-thumbnail:hover {
+    border-color: #0d6efd;
+    transform: scale(1.05);
+}
+
+.citation-box {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* 上传表单样式 */
+.upload-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.image-preview-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.image-preview {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid #dee2e6;
+}
+
+.image-preview .remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.image-preview .remove-image-btn:hover {
+    background-color: #bb2d3b;
+}
+
+/* 响应式调整 */
+@media (max-width: 1200px) {
+    #periodic-table {
+        grid-template-columns: repeat(18, 50px);
+    }
+
+    .element {
+        width: 50px;
+        height: 50px;
+    }
+
+    .element .symbol {
+        font-size: 16px;
+    }
+
+    .element .name {
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    #periodic-table {
+        grid-template-columns: repeat(18, 40px);
+    }
+
+    .element {
+        width: 40px;
+        height: 40px;
+    }
+
+    .element .symbol {
+        font-size: 14px;
+    }
+
+    .element .name {
+        display: none;
+    }
+}
