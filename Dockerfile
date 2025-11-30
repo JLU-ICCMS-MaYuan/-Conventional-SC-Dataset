@@ -24,7 +24,7 @@ RUN mkdir -p /app/data
 # 这样可以确保数据库创建在Volume挂载后的持久化存储中
 
 # 暴露端口（Railway会通过PORT环境变量动态指定）
-EXPOSE ${PORT:-8000}
+EXPOSE 8000
 
-# 启动命令：使用shell形式以便读取PORT环境变量
-CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# 启动命令：使用sh -c确保环境变量被正确展开
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
