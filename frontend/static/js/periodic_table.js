@@ -183,12 +183,10 @@ function createElementDiv(element) {
     div.className = `element ${element.category}`;
     div.dataset.symbol = element.symbol;
     div.dataset.number = element.number;
-    div.dataset.name = element.name;
 
     div.innerHTML = `
-        <div class="element-number">${element.number}</div>
-        <div class="element-symbol">${element.symbol}</div>
-        <div class="element-name">${element.name}</div>
+        <div class="atomic-number">${element.number}</div>
+        <div class="symbol">${element.symbol}</div>
     `;
 
     // 点击事件
