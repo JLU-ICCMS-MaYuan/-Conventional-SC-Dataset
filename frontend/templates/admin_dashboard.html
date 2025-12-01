@@ -18,7 +18,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-item active" href="/admin/dashboard">审核文献</a>
+                        <a class="nav-link active" href="/admin/dashboard">审核文献</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/papers">全局管理</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin/my-reviews">我审核的文献</a>
@@ -45,10 +48,108 @@
         </div>
     </div>
 
+    <!-- 编辑文献模态框 -->
+    <div class="modal fade" id="editPaperModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑文献信息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPaperForm">
+                        <input type="hidden" id="editPaperId">
+
+                        <div class="mb-3">
+                            <label class="form-label">DOI <small class="text-muted">(只读)</small></label>
+                            <input type="text" class="form-control" id="editDoi" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">标题 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editTitle" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">期刊</label>
+                                <input type="text" class="form-control" id="editJournal">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">年份</label>
+                                <input type="number" class="form-control" id="editYear" min="1900" max="2100">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">卷号</label>
+                                <input type="text" class="form-control" id="editVolume">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">作者</label>
+                            <textarea class="form-control" id="editAuthors" rows="2"></textarea>
+                            <small class="text-muted">JSON格式，如：["张三", "李四"]</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">文章类型</label>
+                                <select class="form-select" id="editArticleType">
+                                    <option value="theoretical">理论</option>
+                                    <option value="experimental">实验</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">超导体类型</label>
+                                <select class="form-select" id="editSuperconductorType">
+                                    <option value="conventional">常规</option>
+                                    <option value="unconventional">非常规</option>
+                                    <option value="unknown">未知</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">化学式</label>
+                                <input type="text" class="form-control" id="editChemicalFormula">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">晶体结构</label>
+                                <input type="text" class="form-control" id="editCrystalStructure">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">贡献者</label>
+                                <input type="text" class="form-control" id="editContributorName">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">贡献者单位</label>
+                                <input type="text" class="form-control" id="editContributorAffiliation">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-control" id="editNotes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="savePaperEdits()">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let token = '';
         let currentUser = null;
+        let editModal = null;
 
         // 检查登录状态
         function checkAuth() {
@@ -113,21 +214,41 @@
             let html = `<p class="text-muted">共 ${total} 篇待审核文献</p>`;
 
             papers.forEach(paper => {
+                // HTML转义函数，防止XSS和引号问题
+                const escapeHtml = (str) => {
+                    const div = document.createElement('div');
+                    div.textContent = str;
+                    return div.innerHTML;
+                };
+
+                const safeTitle = escapeHtml(paper.title);
+                const safeJournal = escapeHtml(paper.journal || '未知');
+                const safeContributor = escapeHtml(paper.contributor_name);
+
+                // 构建按钮组（根据用户角色显示不同按钮）
+                let buttons = `
+                    <a href="https://doi.org/${paper.doi}" target="_blank" class="btn btn-sm btn-outline-primary">查看原文</a>
+                    <button class="btn btn-sm btn-warning btn-edit" data-paper-id="${paper.id}">编辑</button>
+                    <button class="btn btn-sm btn-success btn-review" data-paper-id="${paper.id}" data-paper-title="${safeTitle}">标记为已审核</button>
+                `;
+
+                // 如果是超级管理员，显示删除按钮
+                if (currentUser && currentUser.is_superadmin) {
+                    buttons += `<button class="btn btn-sm btn-danger btn-delete" data-paper-id="${paper.id}" data-paper-doi="${paper.doi}" data-paper-title="${safeTitle}">删除</button>`;
+                }
+
                 html += `
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h5 class="card-title">${paper.title}</h5>
+                            <h5 class="card-title">${safeTitle}</h5>
                             <p class="text-muted mb-2">
                                 <strong>DOI:</strong> ${paper.doi}<br>
-                                <strong>期刊:</strong> ${paper.journal || '未知'} (${paper.year || '未知年份'})<br>
-                                <strong>贡献者:</strong> ${paper.contributor_name}<br>
+                                <strong>期刊:</strong> ${safeJournal} (${paper.year || '未知年份'})<br>
+                                <strong>贡献者:</strong> ${safeContributor}<br>
                                 <strong>提交时间:</strong> ${new Date(paper.created_at).toLocaleString('zh-CN')}
                             </p>
-                            <div class="d-flex gap-2">
-                                <a href="https://doi.org/${paper.doi}" target="_blank" class="btn btn-sm btn-outline-primary">查看原文</a>
-                                <button class="btn btn-sm btn-success" onclick="reviewPaper(${paper.id}, '${paper.title}')">
-                                    标记为已审核
-                                </button>
+                            <div class="d-flex gap-2 flex-wrap">
+                                ${buttons}
                             </div>
                         </div>
                     </div>
@@ -135,6 +256,31 @@
             });
 
             container.innerHTML = html;
+
+            // 绑定事件
+            container.querySelectorAll('.btn-review').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const paperId = this.getAttribute('data-paper-id');
+                    const paperTitle = this.getAttribute('data-paper-title');
+                    reviewPaper(paperId, paperTitle);
+                });
+            });
+
+            container.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const paperId = this.getAttribute('data-paper-id');
+                    openEditModal(paperId);
+                });
+            });
+
+            container.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const paperId = this.getAttribute('data-paper-id');
+                    const paperDoi = this.getAttribute('data-paper-doi');
+                    const paperTitle = this.getAttribute('data-paper-title');
+                    deletePaper(paperId, paperDoi, paperTitle);
+                });
+            });
         }
 
         // 审核文献
@@ -162,6 +308,134 @@
             } catch (error) {
                 console.error('审核失败:', error);
                 alert('操作失败，请检查网络连接');
+            }
+        }
+
+        // 打开编辑模态框
+        async function openEditModal(paperId) {
+            try {
+                const response = await fetch(`/api/admin/papers/${paperId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取文献信息失败');
+                }
+
+                const paper = await response.json();
+
+                // 填充表单
+                document.getElementById('editPaperId').value = paper.id;
+                document.getElementById('editDoi').value = paper.doi;
+                document.getElementById('editTitle').value = paper.title || '';
+                document.getElementById('editJournal').value = paper.journal || '';
+                document.getElementById('editYear').value = paper.year || '';
+                document.getElementById('editVolume').value = paper.volume || '';
+                document.getElementById('editAuthors').value = paper.authors || '';
+                document.getElementById('editArticleType').value = paper.article_type || 'experimental';
+                document.getElementById('editSuperconductorType').value = paper.superconductor_type || 'unknown';
+                document.getElementById('editChemicalFormula').value = paper.chemical_formula || '';
+                document.getElementById('editCrystalStructure').value = paper.crystal_structure || '';
+                document.getElementById('editContributorName').value = paper.contributor_name || '';
+                document.getElementById('editContributorAffiliation').value = paper.contributor_affiliation || '';
+                document.getElementById('editNotes').value = paper.notes || '';
+
+                // 显示模态框
+                if (!editModal) {
+                    editModal = new bootstrap.Modal(document.getElementById('editPaperModal'));
+                }
+                editModal.show();
+
+            } catch (error) {
+                console.error('打开编辑框失败:', error);
+                alert('无法打开编辑框: ' + error.message);
+            }
+        }
+
+        // 保存编辑
+        async function savePaperEdits() {
+            const paperId = document.getElementById('editPaperId').value;
+
+            const updateData = {
+                title: document.getElementById('editTitle').value,
+                journal: document.getElementById('editJournal').value,
+                year: document.getElementById('editYear').value ? parseInt(document.getElementById('editYear').value) : null,
+                volume: document.getElementById('editVolume').value,
+                authors: document.getElementById('editAuthors').value,
+                article_type: document.getElementById('editArticleType').value,
+                superconductor_type: document.getElementById('editSuperconductorType').value,
+                chemical_formula: document.getElementById('editChemicalFormula').value,
+                crystal_structure: document.getElementById('editCrystalStructure').value,
+                contributor_name: document.getElementById('editContributorName').value,
+                contributor_affiliation: document.getElementById('editContributorAffiliation').value,
+                notes: document.getElementById('editNotes').value
+            };
+
+            try {
+                const response = await fetch(`/api/admin/papers/${paperId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('文献信息已更新！');
+                    editModal.hide();
+                    loadUnreviewedPapers(); // 重新加载列表
+                } else {
+                    alert('保存失败: ' + (data.detail || '未知错误'));
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                alert('保存失败，请检查网络连接');
+            }
+        }
+
+        // 删除文献（三重确认）
+        async function deletePaper(paperId, paperDoi, paperTitle) {
+            // 第一次确认
+            if (!confirm(`⚠️ 警告：确定要删除文献《${paperTitle}》吗？\n\n此操作将删除该文献及其所有截图，且不可撤销！`)) {
+                return;
+            }
+
+            // 第二次确认：输入DOI验证
+            const inputDoi = prompt(`请输入该文献的DOI以确认删除：\n\n${paperDoi}`);
+            if (inputDoi !== paperDoi) {
+                alert('DOI不匹配，删除已取消');
+                return;
+            }
+
+            // 第三次确认
+            if (!confirm(`最后确认：真的要删除《${paperTitle}》吗？\n\n⚠️ 此操作不可撤销！`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/papers/${paperId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('文献已删除！');
+                    loadUnreviewedPapers(); // 重新加载列表
+                } else {
+                    alert('删除失败: ' + (data.detail || '未知错误'));
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败，请检查网络连接');
             }
         }
 

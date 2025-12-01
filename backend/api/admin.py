@@ -299,3 +299,446 @@ async def get_my_reviewed_papers(
             for paper in papers
         ]
     }
+
+
+# ========== 文献编辑与删除功能（管理员/超级管理员） ==========
+
+class UpdatePaperRequest(BaseModel):
+    """文献编辑请求模型"""
+    title: Optional[str] = None
+    authors: Optional[str] = None
+    journal: Optional[str] = None
+    volume: Optional[str] = None
+    pages: Optional[str] = None
+    year: Optional[int] = None
+    abstract: Optional[str] = None
+    article_type: Optional[str] = None  # theoretical 或 experimental
+    superconductor_type: Optional[str] = None  # conventional, unconventional, unknown
+    chemical_formula: Optional[str] = None
+    crystal_structure: Optional[str] = None
+    contributor_name: Optional[str] = None
+    contributor_affiliation: Optional[str] = None
+    notes: Optional[str] = None
+
+
+# ========== 全局文献管理功能 ==========
+
+@router.get("/papers/all", summary="获取所有文献（支持多维度筛选）")
+async def get_all_papers(
+    review_status: Optional[str] = None,  # reviewed, unreviewed
+    article_type: Optional[str] = None,  # theoretical, experimental
+    superconductor_type: Optional[str] = None,  # conventional, unconventional, unknown
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None,
+    keyword: Optional[str] = None,  # 搜索标题、DOI、化学式
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    获取所有文献列表（不限元素组合）
+
+    支持多维度筛选：
+    - review_status: 审核状态
+    - article_type: 文章类型
+    - superconductor_type: 超导体类型
+    - year_min/year_max: 年份范围
+    - keyword: 关键词搜索（标题、DOI、化学式）
+    """
+    query = db.query(Paper)
+
+    # 审核状态筛选
+    if review_status:
+        query = query.filter(Paper.review_status == review_status)
+
+    # 文章类型筛选
+    if article_type:
+        query = query.filter(Paper.article_type == article_type)
+
+    # 超导体类型筛选
+    if superconductor_type:
+        query = query.filter(Paper.superconductor_type == superconductor_type)
+
+    # 年份范围筛选
+    if year_min:
+        query = query.filter(Paper.year >= year_min)
+    if year_max:
+        query = query.filter(Paper.year <= year_max)
+
+    # 关键词搜索
+    if keyword:
+        search_pattern = f"%{keyword}%"
+        query = query.filter(
+            (Paper.title.like(search_pattern)) |
+            (Paper.doi.like(search_pattern)) |
+            (Paper.chemical_formula.like(search_pattern))
+        )
+
+    # 获取总数
+    total = query.count()
+
+    # 分页查询
+    papers = query.order_by(Paper.created_at.desc()).offset(offset).limit(limit).all()
+
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "papers": [
+            {
+                "id": paper.id,
+                "doi": paper.doi,
+                "title": paper.title,
+                "year": paper.year,
+                "journal": paper.journal,
+                "article_type": paper.article_type,
+                "superconductor_type": paper.superconductor_type,
+                "chemical_formula": paper.chemical_formula,
+                "compound_symbols": paper.compound.element_symbols,
+                "review_status": paper.review_status,
+                "reviewer_name": paper.reviewer.real_name if paper.reviewer else None,
+                "contributor_name": paper.contributor_name,
+                "created_at": paper.created_at.isoformat(),
+                "images_count": len(paper.images)
+            }
+            for paper in papers
+        ]
+    }
+
+
+@router.get("/papers/{paper_id}", summary="获取文献详细信息")
+async def get_paper_detail(
+    paper_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    获取文献的完整信息（用于编辑表单）
+
+    所有管理员都可以访问
+    """
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+
+    if not paper:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文献不存在"
+        )
+
+    return {
+        "id": paper.id,
+        "doi": paper.doi,
+        "title": paper.title,
+        "authors": paper.authors,
+        "journal": paper.journal,
+        "volume": paper.volume,
+        "pages": paper.pages,
+        "year": paper.year,
+        "abstract": paper.abstract,
+        "article_type": paper.article_type,
+        "superconductor_type": paper.superconductor_type,
+        "chemical_formula": paper.chemical_formula,
+        "crystal_structure": paper.crystal_structure,
+        "contributor_name": paper.contributor_name,
+        "contributor_affiliation": paper.contributor_affiliation,
+        "notes": paper.notes,
+        "review_status": paper.review_status,
+        "created_at": paper.created_at.isoformat(),
+        "compound_symbols": paper.compound.element_symbols
+    }
+
+
+@router.put("/papers/{paper_id}", summary="编辑文献信息")
+async def update_paper(
+    paper_id: int,
+    request: UpdatePaperRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    编辑文献信息
+
+    所有管理员都可以编辑
+    只更新提供的字段，未提供的字段保持不变
+    """
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+
+    if not paper:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文献不存在"
+        )
+
+    # 验证文章类型
+    if request.article_type and request.article_type not in ["theoretical", "experimental"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="文章类型必须是 theoretical 或 experimental"
+        )
+
+    # 验证超导体类型
+    if request.superconductor_type and request.superconductor_type not in ["conventional", "unconventional", "unknown"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="超导体类型必须是 conventional, unconventional 或 unknown"
+        )
+
+    # 验证年份范围
+    if request.year and (request.year < 1900 or request.year > 2100):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="年份必须在 1900-2100 之间"
+        )
+
+    # 更新字段（只更新非None的字段）
+    update_data = request.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        if value is not None:
+            setattr(paper, field, value)
+
+    db.commit()
+    db.refresh(paper)
+
+    return {
+        "message": "文献信息已更新",
+        "paper_id": paper.id,
+        "doi": paper.doi,
+        "title": paper.title,
+        "updated_by": current_user.real_name
+    }
+
+
+@router.delete("/papers/{paper_id}", summary="删除文献（仅超级管理员）")
+async def delete_paper(
+    paper_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin)
+):
+    """
+    删除文献及其所有关联数据
+
+    仅超级管理员可以操作
+    会级联删除所有文献截图
+    """
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+
+    if not paper:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文献不存在"
+        )
+
+    # 记录删除的文献信息（用于日志）
+    deleted_info = {
+        "paper_id": paper.id,
+        "doi": paper.doi,
+        "title": paper.title,
+        "compound": paper.compound.element_symbols,
+        "images_count": len(paper.images),
+        "deleted_by": current_user.real_name,
+        "deleted_at": datetime.utcnow().isoformat()
+    }
+
+    # 删除文献（会自动级联删除 paper_images）
+    db.delete(paper)
+    db.commit()
+
+    return {
+        "message": f"文献《{deleted_info['title']}》已删除",
+        "deleted_info": deleted_info
+    }
+
+
+# ========== 批量操作功能 ==========
+
+class BatchReviewRequest(BaseModel):
+    """批量审核请求模型"""
+    paper_ids: List[int]
+
+
+@router.post("/papers/batch-review", summary="批量审核文献")
+async def batch_review_papers(
+    request: BatchReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    批量将文献标记为已审核
+
+    所有管理员都可以操作
+    """
+    if not request.paper_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="未提供文献ID列表"
+        )
+
+    # 查询所有指定的文献
+    papers = db.query(Paper).filter(Paper.id.in_(request.paper_ids)).all()
+
+    if not papers:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="未找到指定的文献"
+        )
+
+    # 批量标记为已审核
+    reviewed_count = 0
+    skipped_count = 0
+    for paper in papers:
+        if paper.review_status == "unreviewed":
+            paper.review_status = "reviewed"
+            paper.reviewed_by = current_user.id
+            paper.reviewed_at = datetime.utcnow()
+            reviewed_count += 1
+        else:
+            skipped_count += 1
+
+    db.commit()
+
+    return {
+        "message": f"批量审核完成",
+        "reviewed_count": reviewed_count,
+        "skipped_count": skipped_count,
+        "total_requested": len(request.paper_ids)
+    }
+
+
+@router.post("/papers/batch-delete", summary="批量删除文献（仅超级管理员）")
+async def batch_delete_papers(
+    request: BatchReviewRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superadmin)
+):
+    """
+    批量删除文献及其所有关联数据
+
+    仅超级管理员可以操作
+    """
+    if not request.paper_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="未提供文献ID列表"
+        )
+
+    # 查询所有指定的文献
+    papers = db.query(Paper).filter(Paper.id.in_(request.paper_ids)).all()
+
+    if not papers:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="未找到指定的文献"
+        )
+
+    # 记录删除信息
+    deleted_papers = []
+    for paper in papers:
+        deleted_papers.append({
+            "paper_id": paper.id,
+            "doi": paper.doi,
+            "title": paper.title
+        })
+        db.delete(paper)
+
+    db.commit()
+
+    return {
+        "message": f"批量删除完成",
+        "deleted_count": len(deleted_papers),
+        "deleted_papers": deleted_papers,
+        "deleted_by": current_user.real_name,
+        "deleted_at": datetime.utcnow().isoformat()
+    }
+
+
+# ========== 图片管理功能 ==========
+
+from backend.models import PaperImage
+from backend.utils.image_processor import process_image
+
+
+@router.get("/papers/{paper_id}/images", summary="获取文献的所有图片")
+async def get_paper_images(
+    paper_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    获取文献的所有截图列表
+
+    返回图片ID、顺序、文件大小等信息
+    """
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+
+    if not paper:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文献不存在"
+        )
+
+    return {
+        "paper_id": paper.id,
+        "total_images": len(paper.images),
+        "images": [
+            {
+                "id": img.id,
+                "order": img.image_order,
+                "file_size": img.file_size,
+                "created_at": img.created_at.isoformat()
+            }
+            for img in sorted(paper.images, key=lambda x: x.image_order)
+        ]
+    }
+
+
+@router.delete("/papers/{paper_id}/images/{image_id}", summary="删除文献截图")
+async def delete_paper_image(
+    paper_id: int,
+    image_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    删除指定的文献截图
+
+    管理员可以操作
+    """
+    image = db.query(PaperImage).filter(
+        PaperImage.id == image_id,
+        PaperImage.paper_id == paper_id
+    ).first()
+
+    if not image:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="图片不存在"
+        )
+
+    # 获取文献的所有图片
+    paper = db.query(Paper).filter(Paper.id == paper_id).first()
+    if len(paper.images) <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="至少需要保留一张图片"
+        )
+
+    deleted_order = image.image_order
+    db.delete(image)
+
+    # 重新排序剩余图片
+    remaining_images = db.query(PaperImage).filter(
+        PaperImage.paper_id == paper_id,
+        PaperImage.image_order > deleted_order
+    ).all()
+
+    for img in remaining_images:
+        img.image_order -= 1
+
+    db.commit()
+
+    return {
+        "message": "图片已删除",
+        "deleted_image_id": image_id,
+        "remaining_images": len(paper.images) - 1
+    }

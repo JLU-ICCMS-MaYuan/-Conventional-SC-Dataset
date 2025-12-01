@@ -128,6 +128,16 @@ def admin_my_reviews_page():
     return {"error": "页面不存在"}
 
 
+# 全局文献管理页面（新增）
+@app.get("/admin/papers")
+def admin_papers_page():
+    """返回全局文献管理页面"""
+    papers_file = TEMPLATES_DIR / "admin_papers.html"
+    if papers_file.exists():
+        return FileResponse(papers_file)
+    return {"error": "页面不存在"}
+
+
 # 健康检查端点
 @app.get("/health")
 def health_check():
