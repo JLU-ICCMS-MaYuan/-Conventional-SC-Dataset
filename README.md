@@ -24,30 +24,75 @@
 pip install -r requirements.txt
 ```
 
-**3. 初始化数据库**
+**3. 本地部署方案**
+
+#### 方案一：使用启动脚本（推荐用于测试完整流程）
+
 ```bash
+# 直接运行启动脚本
+./start.sh
+```
+
+**特点：**
+- ✅ 自动检查并创建 data 目录
+- ✅ 自动运行数据库初始化（已有数据会跳过）
+- ✅ 显示详细的启动日志
+- ✅ 模拟生产环境启动流程
+
+**适用场景：**
+- 第一次启动项目
+- 测试完整的部署流程
+- 验证数据库初始化是否正常
+
+---
+
+#### 方案二：直接启动开发服务器（推荐用于日常开发）
+
+```bash
+# 如果是首次启动，需先初始化数据库
 python -m backend.init_db
+
+# 启动开发服务器（带热重载）
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**4. 启动服务**
-```bash
-python -m backend.main
-```
+**特点：**
+- ✅ 代码修改后自动重启服务器
+- ✅ 启动速度快，无额外日志输出
+- ✅ 直接使用本地 `data/superconductor.db`
+- ✅ 不会每次都重新初始化数据库
 
-**5. 访问网站**
+**适用场景：**
+- 日常开发和调试
+- 频繁修改代码
+- 需要快速看到代码效果
+
+**参数说明：**
+- `--host 0.0.0.0`：允许从任何IP访问（局域网访问）
+- `--port 8000`：监听8000端口
+- `--reload`：代码修改时自动重启（仅开发环境使用）
+
+---
+
+**4. 访问网站**
 - 主页：http://localhost:8000
 - API文档：http://localhost:8000/docs
+- 本机访问：http://127.0.0.1:8000
+- 局域网访问：http://你的IP:8000
 
-### Docker 部署
+### Docker 部署（完全模拟生产环境）
 
 ```bash
-# 构建并启动容器
-docker-compose up -d
+# 构建 Docker 镜像
+docker build -t superconductor-app .
 
-# 查看日志
-docker-compose logs -f
+# 运行容器（挂载本地 data 目录）
+docker run -p 8000:8000 -v $(pwd)/data:/app/data superconductor-app
 
-# 停止服务
+# 查看容器日志
+docker logs -f <容器ID>
+
+# 停止容器
 docker-compose down
 ```
 
